@@ -4,11 +4,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Result</title>
+
+    <!-- Include Chart.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <h1>Single metrics:</h1>
-    <p>{{ single_metrics }}</p>
-    <h1>Charts:</h1>
-    <p>{{ periodic_metrics }}</p>
+
+    <h1>Metrics Information:</h1>
+
+    <!-- Use a loop to create a canvas and chart for each metric -->
+    {% for metricData in periodic_metrics %}
+        {% set metricParts = metricData.split(' -> ') %}
+        {% set metricName = metricParts[0].split(': ')[0] %}
+        {% set metricPoints = metricParts[1] | replace("'", '"') | tojson | safe %}
+
+        <div class="chart-container" style="position: relative; height:40vh; width:80vw">
+            <canvas id="{{ metricName }}Chart"></canvas>
+        </div>
+        <!-- <canvas id="{{ metricName }}Chart" width="80px" height="40px"></canvas> -->
+
+        <script>
+            const {{ metricName }}Ctx = document.getElementById('{{ metricName }}Chart').getContext('2d');
+            const {{ metricName }}Points = JSON.parse({{ metricPoints }});
+            
+            values = {{ metricName }}Points.map(entry => entry.v)
+            periods = {{ metricName }}Points.map(entry => entry.v)
+
+            console.log(periods)
+            console.log(values)
+
+            const {{ metricName }}Chart = new Chart({{ metricName }}Ctx, {
+                type: 'line',
+                data: {
+                    labels: periods,
+                    datasets: [{
+                        label: '{{ metricName }}',
+                        data: values,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 2,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        </script>
+    {% endfor %}
 </body>
 </html>
