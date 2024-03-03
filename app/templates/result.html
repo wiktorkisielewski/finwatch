@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Result</title>
 
-    <!-- Include Chart.js library -->
+    <!-- Include Chart.js and Moment.js libraries -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment"></script>
 </head>
 <body>
 
@@ -21,25 +22,54 @@
         <div class="chart-container" style="position: relative; height:40vh; width:80vw">
             <canvas id="{{ metricName }}Chart"></canvas>
         </div>
-        <!-- <canvas id="{{ metricName }}Chart" width="80px" height="40px"></canvas> -->
 
         <script>
             const {{ metricName }}Ctx = document.getElementById('{{ metricName }}Chart').getContext('2d');
             const {{ metricName }}Points = JSON.parse({{ metricPoints }});
             
-            values = {{ metricName }}Points.map(entry => entry.v)
-            periods = {{ metricName }}Points.map(entry => entry.v)
+            const {{ metricName }}values = {{ metricName }}Points.map(entry => entry.v);
+            const {{ metricName }}periods = {{ metricName }}Points.map(entry => entry.period);
 
-            console.log(periods)
-            console.log(values)
+            // Manually add Moment.js and register it with Chart.js
+            moment.suppressDeprecationWarnings = true;
+            Chart.helpers.each(Chart.instances, function (instance) {
+                if (instance.controller.id === {{ metricName }}Ctx.canvas.id) {
+                    instance.destroy();
+                }
+            });
+            Chart._adapters._date.override({
+                // Use Moment.js to parse dates
+                _id: 'moment',
+                formats: function () {
+                    return [moment.ISO_8601];
+                },
+                parse: function (value) {
+                    return moment(value);
+                },
+                format: function (value) {
+                    return moment(value).toISOString();
+                },
+                add: function (time, amount, unit) {
+                    return moment(time).add(amount, unit).toDate();
+                },
+                diff: function (max, min, unit) {
+                    return moment(max).diff(moment(min), unit);
+                },
+                startOf: function (time, unit, weekday) {
+                    return moment(time).startOf(unit);
+                },
+                endOf: function (time, unit) {
+                    return moment(time).endOf(unit);
+                }
+            });
 
             const {{ metricName }}Chart = new Chart({{ metricName }}Ctx, {
                 type: 'line',
                 data: {
-                    labels: periods,
+                    labels: {{ metricName }}periods,
                     datasets: [{
                         label: '{{ metricName }}',
-                        data: values,
+                        data: {{ metricName }}values,
                         borderColor: 'rgba(75, 192, 192, 1)',
                         borderWidth: 2,
                         fill: false
@@ -50,8 +80,10 @@
                     maintainAspectRatio: false,
                     scales: {
                         x: {
-                            type: 'linear',
-                            position: 'bottom'
+                            type: 'time',
+                            time: {
+                                unit: 'month'  // You can adjust the time unit as needed
+                            }
                         }
                     }
                 }
