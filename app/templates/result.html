@@ -8,68 +8,81 @@
     <!-- Include Chart.js and Moment.js libraries -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment"></script>
+    <style>
+        .chart-container {
+            position: relative;
+            height: 40vh;
+            width: 80vw;
+        }
+    </style>
+
 </head>
 <body>
+    <h1>Financial data for {{ ticker }}</h1>
+    <script>
+        // Manually add Moment.js and register it with Chart.js
+        moment.suppressDeprecationWarnings = true;
+        Chart._adapters._date.override({
+            // Use Moment.js to parse dates
+            _id: 'moment',
+            formats: function () {
+                return [moment.ISO_8601];
+            },
+            parse: function (value) {
+                return moment(value);
+            },
+            format: function (value) {
+                return moment(value).toISOString();
+            },
+            add: function (time, amount, unit) {
+                return moment(time).add(amount, unit).toDate();
+            },
+            diff: function (max, min, unit) {
+                return moment(max).diff(moment(min), unit);
+            },
+            startOf: function (time, unit, weekday) {
+                return moment(time).startOf(unit);
+            },
+            endOf: function (time, unit) {
+                return moment(time).endOf(unit);
+            }
+        });
 
-    <h1>Metrics Information:</h1>
+        // Parse the JSON data from Flask
+        var metricsData = {{ periodic_metrics | safe }};
 
-    <!-- Use a loop to create a canvas and chart for each metric -->
-    {% for metricData in periodic_metrics %}
-        {% set metricParts = metricData.split(' -> ') %}
-        {% set metricName = metricParts[0].split(': ')[0] %}
-        {% set metricPoints = metricParts[1] | replace("'", '"') | tojson | safe %}
+        metricsData.forEach(function(metricData) {
+            // Split the metric data string to get the metric name and data
+            var metricParts = metricData.split(' -> ');
 
-        <div class="chart-container" style="position: relative; height:40vh; width:80vw">
-            <canvas id="{{ metricName }}Chart"></canvas>
-        </div>
+            // Extract the metric name
+            var metricName = metricParts[0].split(': ')[0];
 
-        <script>
-            const {{ metricName }}Ctx = document.getElementById('{{ metricName }}Chart').getContext('2d');
-            const {{ metricName }}Points = JSON.parse({{ metricPoints }});
-            
-            const {{ metricName }}values = {{ metricName }}Points.map(entry => entry.v);
-            const {{ metricName }}periods = {{ metricName }}Points.map(entry => entry.period);
+            // Extract the data and parse as JSON
+            var metricPoints = JSON.parse(metricParts[1].replace(/'/g, '"'));
 
-            // Manually add Moment.js and register it with Chart.js
-            moment.suppressDeprecationWarnings = true;
-            Chart.helpers.each(Chart.instances, function (instance) {
-                if (instance.controller.id === {{ metricName }}Ctx.canvas.id) {
-                    instance.destroy();
-                }
-            });
-            Chart._adapters._date.override({
-                // Use Moment.js to parse dates
-                _id: 'moment',
-                formats: function () {
-                    return [moment.ISO_8601];
-                },
-                parse: function (value) {
-                    return moment(value);
-                },
-                format: function (value) {
-                    return moment(value).toISOString();
-                },
-                add: function (time, amount, unit) {
-                    return moment(time).add(amount, unit).toDate();
-                },
-                diff: function (max, min, unit) {
-                    return moment(max).diff(moment(min), unit);
-                },
-                startOf: function (time, unit, weekday) {
-                    return moment(time).startOf(unit);
-                },
-                endOf: function (time, unit) {
-                    return moment(time).endOf(unit);
-                }
-            });
+            // Create a div container for each metric
+            var divContainer = document.createElement('div');
+            divContainer.className = 'chart-container';
+            document.body.appendChild(divContainer);
 
-            const {{ metricName }}Chart = new Chart({{ metricName }}Ctx, {
+            // Create a canvas element for each metric
+            var canvas = document.createElement('canvas');
+            canvas.id = metricName + 'Chart';
+            divContainer.appendChild(canvas);
+
+            // Initialize Chart.js for each metric
+            const metricCtx = canvas.getContext('2d');
+            const metricValues = metricPoints.map(entry => entry.v);
+            const metricPeriods = metricPoints.map(entry => moment(entry.period));
+
+            const metricChart = new Chart(metricCtx, {
                 type: 'line',
                 data: {
-                    labels: {{ metricName }}periods,
+                    labels: metricPeriods,
                     datasets: [{
-                        label: '{{ metricName }}',
-                        data: {{ metricName }}values,
+                        label: metricName,
+                        data: metricValues,
                         borderColor: 'rgba(75, 192, 192, 1)',
                         borderWidth: 2,
                         fill: false
@@ -88,7 +101,7 @@
                     }
                 }
             });
-        </script>
-    {% endfor %}
+        });
+    </script>
 </body>
 </html>

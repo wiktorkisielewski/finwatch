@@ -8,7 +8,7 @@ def index():
     if request.method == 'POST':
         ticker = request.form['ticker']
         single_metrics, periodic_metrics = get_basic_financials(ticker=ticker)
-        return render_template('result.html', single_metrics=single_metrics, periodic_metrics=periodic_metrics)
+        return render_template('result.html', single_metrics=single_metrics, periodic_metrics=periodic_metrics, ticker=ticker)
     return render_template('index.html')
 
 if __name__ == '__main__':
