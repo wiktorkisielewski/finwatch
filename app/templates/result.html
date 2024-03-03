@@ -14,11 +14,57 @@
             height: 40vh;
             width: 80vw;
         }
+        body {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            padding: 20px;
+        }
+
+        .metric-container {
+            flex: 0 0 calc(10% - 20px);
+            margin: 2px;
+            padding: 1px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
     </style>
 
 </head>
 <body>
     <h1>Financial data for {{ ticker }}</h1>
+    <div class="single_metrics"></div>
+    <div class="charts"></div>
+    <script>
+        // Your data array
+        var financialData = {{ single_metrics | safe }};
+
+        // Loop through the financial data
+        financialData.forEach(function(metric) {
+            // Split each string into key and value
+            var parts = metric.split(':');
+            var key = parts[0].trim();
+            var value = parts[1].trim();
+
+            // Create a div container for each metric
+            var divContainer = document.createElement('div');
+            divContainer.className = 'metric-container';
+
+            // Create a paragraph for key and value
+            var keyElement = document.createElement('p');
+            keyElement.textContent = key;
+
+            var valueElement = document.createElement('p');
+            valueElement.textContent = value;
+
+            // Append key and value paragraphs to the div container
+            divContainer.appendChild(keyElement);
+            divContainer.appendChild(valueElement);
+
+            // Append the div container to the body
+            document.body.appendChild(divContainer);
+        });
+    </script>
     <script>
         // Manually add Moment.js and register it with Chart.js
         moment.suppressDeprecationWarnings = true;
