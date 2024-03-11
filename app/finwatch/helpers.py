@@ -12,7 +12,7 @@ def add_data_to_quarterly_array(data: dict, quarters: list):
             for k, v in data.items():
                 if k != 'quarter':
                     q[k] = v
-            # exit if quarter was found
-            break
+        # exit if quarter was found
+        break
         
     quarters.append(data)

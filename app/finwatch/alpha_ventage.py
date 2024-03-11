@@ -3030,7 +3030,7 @@ def get_balance_sheet(ticker: str):
                 "total_current_assets": total_current_assets,
                 "total_current_liabilities": total_current_liabilities,
             },
-            quarters=quarters
+            quarters=quarters,
         )
 
     # response = requests.get(url, params=params)
@@ -5245,9 +5245,10 @@ def get_income_statement(ticker: str):
         ebit = q["ebit"]
         add_data_to_quarterly_array(
             data={
+                "quarter": quarter,
                 "ebit": ebit,
             },
-            quarters=quarters
+            quarters=quarters,
         )
 
     return symbol
