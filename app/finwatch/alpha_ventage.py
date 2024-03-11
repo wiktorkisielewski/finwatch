@@ -1,8 +1,11 @@
 import requests
 from auth import alpha_token
-from calc import calc_enterprise_value
+import calc as calc
 from helpers import create_quarterly_array, add_data_to_quarterly_array
 
+# tmp
+import matplotlib.pyplot as plt
+import pandas as pd
 
 def get_balance_sheet(ticker: str):
     url = "https://www.alphavantage.co/query"
@@ -3016,18 +3019,21 @@ def get_balance_sheet(ticker: str):
         ],
     }
 
-    symbol = data["symbol"]
     quarterly_reports = data["quarterlyReports"]
 
     for q in quarterly_reports:
         quarter = q["fiscalDateEnding"]
-        total_current_assets = q["totalCurrentAssets"]
-        total_current_liabilities = q["totalCurrentLiabilities"]
+        total_assets = float(q["totalAssets"])
+        total_non_current_assets = float(q["totalNonCurrentAssets"])
+        total_current_assets = float(q["totalCurrentAssets"])
+        total_current_liabilities = float(q["totalCurrentLiabilities"])
 
         add_data_to_quarterly_array(
             data={
                 "quarter": quarter,
+                "total_assets": total_assets,
                 "total_current_assets": total_current_assets,
+                "total_non_current_assets": total_non_current_assets,
                 "total_current_liabilities": total_current_liabilities,
             },
             quarters=quarters,
@@ -5237,12 +5243,11 @@ def get_income_statement(ticker: str):
             },
         ],
     }
-    symbol = data["symbol"]
     quarterly_reports = data["quarterlyReports"]
 
     for q in quarterly_reports:
         quarter = q["fiscalDateEnding"]
-        ebit = q["ebit"]
+        ebit = float(q["ebit"])
         add_data_to_quarterly_array(
             data={
                 "quarter": quarter,
@@ -5251,7 +5256,6 @@ def get_income_statement(ticker: str):
             quarters=quarters,
         )
 
-    return symbol
     # response = requests.get(url, params=params)
 
     # if response.status_code == 200:
@@ -5261,11 +5265,72 @@ def get_income_statement(ticker: str):
     #     print(f"Error: {response.status_code}, {response.text}")
 
 
-quarters = create_quarterly_array()
+def magic_formula(ticker: str):
+    global quarters
+    quarters = create_quarterly_array()
 
-get_balance_sheet("AAPL")
-get_income_statement("AAPL")
-print(quarters)
+    get_balance_sheet(ticker)
+    get_income_statement(ticker)
+
+    for q in quarters:
+        try:
+            ey = calc.earnings_yeld(
+                enterpise_value=float(q["total_assets"]), ebit=float(q["ebit"])
+            )
+            roc = calc.return_on_capital(
+                current_assets=q["total_current_assets"],
+                current_liabilities=q["total_current_liabilities"],
+                ebit=q["ebit"],
+                total_non_current_assets=q["total_non_current_assets"]
+            )
+            quarter = q["quarter"]
+            add_data_to_quarterly_array(
+                data={
+                    "quarter": quarter,
+                    "ey": ey,
+                    "roc": roc,
+                },
+                quarters=quarters,
+            )
+        except KeyError as e:
+            quarter = q["quarter"]
+            print(f"Data missing for a quarter: '{quarter}', key: {e}")
+
+    for i in quarters:
+        print(i)
+
+    data = quarters
+    # Convert the data into a DataFrame for easier plotting
+    df = pd.DataFrame(data)
+    df['quarter'] = pd.to_datetime(df['quarter'])
+
+    # Plotting
+    fig, ax1 = plt.subplots(figsize=(12, 8))
+
+    # Plotting total assets and total liabilities
+    ax1.plot(df['quarter'], df['total_assets'] / 1e9, label='Total Assets', color='b', marker='o')
+    ax1.plot(df['quarter'], df['total_current_assets'] / 1e9, label='Total Current Assets', color='g', marker='o')
+    ax1.plot(df['quarter'], df['total_non_current_assets'] / 1e9, label='Total Non-Current Assets', color='r', marker='o')
+    ax1.plot(df['quarter'], df['total_current_liabilities'] / 1e9, label='Total Current Liabilities', color='orange', marker='o')
+
+    # Adding a second y-axis for EBIT
+    ax2 = ax1.twinx()
+    ax2.plot(df['quarter'], df['ebit'] / 1e9, label='EBIT', color='purple', marker='o')
+
+    # Setting labels and title
+    ax1.set_xlabel('Quarter')
+    ax1.set_ylabel('Amount (in billions)', color='black')
+    ax2.set_ylabel('EBIT (in billions)', color='black')
+    ax1.set_title('Financial Metrics Over Time')
+
+    # Display the legend
+    ax1.legend(loc='upper left')
+    ax2.legend(loc='upper right')
+
+    # Save the plot to a PNG file
+    plt.savefig('financial_metrics_plot.png')
 
 
+
+magic_formula("APPL")
 # calc_enterprise_value(market_cap: float, debt: float, cash: float, cash_eq: float)
