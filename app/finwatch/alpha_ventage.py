@@ -3024,12 +3024,12 @@ def get_balance_sheet(ticker: str, quarters: list) -> list:
         ],
     }
 
-    # response = requests.get(url, params=params)
+    response = requests.get(url, params=params)
 
-    # if response.status_code == 200:
-    #     data = response.json()
-    # else:
-    #     print(f"Error: {response.status_code}, {response.text}")
+    if response.status_code == 200:
+        data = response.json()
+    else:
+        print(f"Error: {response.status_code}, {response.text}")
 
     quarterly_reports = data["quarterlyReports"]
 
@@ -5250,12 +5250,12 @@ def get_income_statement(ticker: str, quarters: list) -> list:
         ],
     }
 
-    # response = requests.get(url, params=params)
+    response = requests.get(url, params=params)
 
-    # if response.status_code == 200:
-    #     data = response.json()
-    # else:
-    #     print(f"Error: {response.status_code}, {response.text}")
+    if response.status_code == 200:
+        data = response.json()
+    else:
+        print(f"Error: {response.status_code}, {response.text}")
     quarterly_reports = data["quarterlyReports"]
 
     for q in quarterly_reports:
