@@ -6,7 +6,7 @@ def create_quarterly_array() -> list:
     
     return quarters
 
-def add_data_to_quarterly_array(data: dict, quarters: list):
+def add_data_to_quarterly_array(data: dict, quarters: list) -> list:
     found = False
 
     for q in quarters:
@@ -20,3 +20,5 @@ def add_data_to_quarterly_array(data: dict, quarters: list):
 
     if not found:
         quarters.append(data)
+
+    return quarters
