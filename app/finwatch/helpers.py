@@ -58,5 +58,11 @@ def get_active_tickers(active_listings: str, stocks: bool, etfs: bool) -> list:
         x += 1
 
     tickers_list = new_tickers_list
-    
+
     return tickers_list
+
+def get_latest_quarter(quarters: list) -> dict:
+    sorted_data = sorted(quarters, key=lambda x: x['quarter'], reverse=True)
+    latest_quarter_data = sorted_data[0]
+    
+    return latest_quarter_data
