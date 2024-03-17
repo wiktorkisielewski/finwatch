@@ -5268,6 +5268,23 @@ def get_income_statement(ticker: str, quarters: list) -> list:
     return quarters
 
 
+def list_active_tickers():
+    url = "https://www.alphavantage.co/query"
+    params = {"function": "LISTING_STATUS", "apikey": alpha_token}
+
+    with open('listing', 'r') as file:
+        contents = file.read()
+        data = contents
+
+    # response = requests.get(url, params=params)
+
+    # if response.status_code == 200:
+    #     data = response.text
+    # else:
+    #     print(f"Error: {response.status_code}, {response.text}")    
+
+    return data
+
 def magic_formula(ticker: str):
     quarters = create_quarterly_array()
 
@@ -5300,32 +5317,9 @@ def magic_formula(ticker: str):
 
     return quarters
 
-    # data = quarters
-    # quarters = [entry['quarter'] for entry in data]
-    # ey_values = [entry['ey'] if 'ey' in entry else None for entry in data]
-    # roc_values = [entry['roc'] if 'roc' in entry else None for entry in data]
+# quarters = magic_formula("AAPL")
 
-    # plt.figure(figsize=(10, 5))
+# for i in quarters:
+#     print(i)
 
-    # if any(ey_values):
-    #     plt.plot(quarters, ey_values, marker='o', label='EY')
-
-    # if any(roc_values):
-    #     plt.plot(quarters, roc_values, marker='s', label='ROC')
-
-    # plt.title('EY and ROC Over Time')
-    # plt.xlabel('Quarter')
-    # plt.ylabel('Value')
-    # plt.xticks(rotation=45)
-    # plt.grid(True)
-    # plt.legend()
-
-    # plt.tight_layout()
-
-    # # Save the plot to a file
-    # plt.savefig(f'{ticker}_ey_and_roc.png')
-
-quarters = magic_formula("AAPL")
-
-for i in quarters:
-    print(i)
+print(list_active_tickers())
