@@ -1,11 +1,16 @@
 import requests
 from auth import alpha_token
 import calc as calc
-from helpers import create_quarterly_array, add_data_to_quarterly_array
+from helpers import (
+    create_quarterly_array,
+    add_data_to_quarterly_array,
+    get_active_tickers,
+)
 
 # tmp
 # import matplotlib.pyplot as plt
 # import pandas as pd
+
 
 def get_balance_sheet(ticker: str, quarters: list) -> list:
     url = "https://www.alphavantage.co/query"
@@ -3018,14 +3023,13 @@ def get_balance_sheet(ticker: str, quarters: list) -> list:
             },
         ],
     }
-    
+
     # response = requests.get(url, params=params)
 
     # if response.status_code == 200:
     #     data = response.json()
     # else:
     #     print(f"Error: {response.status_code}, {response.text}")
-
 
     quarterly_reports = data["quarterlyReports"]
 
@@ -5245,13 +5249,13 @@ def get_income_statement(ticker: str, quarters: list) -> list:
             },
         ],
     }
-    
+
     # response = requests.get(url, params=params)
 
     # if response.status_code == 200:
     #     data = response.json()
     # else:
-    #     print(f"Error: {response.status_code}, {response.text}")    
+    #     print(f"Error: {response.status_code}, {response.text}")
     quarterly_reports = data["quarterlyReports"]
 
     for q in quarterly_reports:
@@ -5272,7 +5276,7 @@ def list_active_tickers():
     url = "https://www.alphavantage.co/query"
     params = {"function": "LISTING_STATUS", "apikey": alpha_token}
 
-    with open('listing', 'r') as file:
+    with open("listing", "r") as file:
         contents = file.read()
         data = contents
 
@@ -5281,9 +5285,10 @@ def list_active_tickers():
     # if response.status_code == 200:
     #     data = response.text
     # else:
-    #     print(f"Error: {response.status_code}, {response.text}")    
+    #     print(f"Error: {response.status_code}, {response.text}")
 
     return data
+
 
 def magic_formula(ticker: str):
     quarters = create_quarterly_array()
@@ -5300,7 +5305,7 @@ def magic_formula(ticker: str):
                 current_assets=q["total_current_assets"],
                 current_liabilities=q["total_current_liabilities"],
                 ebit=q["ebit"],
-                total_non_current_assets=q["total_non_current_assets"]
+                total_non_current_assets=q["total_non_current_assets"],
             )
             quarter = q["quarter"]
             add_data_to_quarterly_array(
@@ -5317,9 +5322,10 @@ def magic_formula(ticker: str):
 
     return quarters
 
+
 # quarters = magic_formula("AAPL")
 
 # for i in quarters:
 #     print(i)
 
-print(list_active_tickers())
+get_active_tickers(active_listings=list_active_tickers(), stocks=False, etfs=False)
