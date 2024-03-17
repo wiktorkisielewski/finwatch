@@ -5328,4 +5328,4 @@ def magic_formula(ticker: str):
 # for i in quarters:
 #     print(i)
 
-get_active_tickers(active_listings=list_active_tickers(), stocks=False, etfs=False)
+get_active_tickers(active_listings=list_active_tickers(), stocks=False, etfs=True)
