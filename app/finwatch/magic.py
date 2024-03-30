@@ -19,7 +19,7 @@ def main():
     # stocks_list = av.get_active_tickers(active_listings=av.list_active_tickers(), stocks=True, etfs=False)
 
     # tmp
-    stocks_list = ["AAPL", "IBM", "MSFT", "TTWO"]
+    stocks_list = ["AAPL", "IBM", "KHC", "TTWO"]
 
     screen_stocks(stocks_list=stocks_list)
 
